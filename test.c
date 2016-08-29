@@ -73,5 +73,10 @@ int main(int argc, const char * argv[]) {
     assert(bb_getLong(bb) == ascii1to8);
     assert(memcmp("87654321", bb_array(bb), 8) == 0);
 
+    bb_limit_set(bb, 15);
+    bb_putLong_index(bb, 2, ascii1to8);
+    assert(bb_getLong_index(bb, 2) == ascii1to8);
+    assert(memcmp("8787654321", bb_array(bb), 8) == 0);
+
     return 0;
 }

@@ -33,16 +33,16 @@ Aligns to most methods in Java ByteBuffer
 |abstract float getFloat()| |
 |abstract float getFloat(int index)| |
 |abstract int getInt()| int32_t bb_getInt(byte_buffer_t *bb); |
-|abstract int getInt(int index)| |
+|abstract int getInt(int index)| int32_t bb_getInt_index(byte_buffer_t *bb, size_t index); |
 |abstract long getLong()| int64_t bb_getLong(byte_buffer_t *bb); |
-|abstract long getLong(int index)| |
+|abstract long getLong(int index)| int64_t bb_getLong_index(byte_buffer_t *bb, size_t index); |
 |abstract short getShort()| int16_t bb_getShort(byte_buffer_t *bb); |
-|abstract short getShort(int index)| |
+|abstract short getShort(int index)| int16_t bb_getShort_index(byte_buffer_t *bb, size_t index); |
 |boolean hasArray()| |
 |int hashCode()| |
 |abstract boolean isDirect()| |
-|ByteOrder order()| |
-|ByteBuffer order(ByteOrder bo)| |
+|ByteOrder order()| byte_order_t bb_order(byte_buffer_t *bb); |
+|ByteBuffer order(ByteOrder bo)| void bb_order_set(byte_buffer_t *bb, byte_order_t order);|
 |abstract ByteBuffer put(byte b)| void bb_put(byte_buffer_t *bb, char c); |
 |ByteBuffer put(byte[] src)| |
 |ByteBuffer put(byte[] src, int offset, int length)| void bb_put_buffer(byte_buffer_t *bb, char *src, size_t offset, size_t length); |
@@ -54,17 +54,17 @@ Aligns to most methods in Java ByteBuffer
 |abstract ByteBuffer putDouble(int index, double value)| |
 |abstract ByteBuffer putFloat(float value)| |
 |abstract ByteBuffer putFloat(int index, float value)| |
-|abstract ByteBuffer putInt(int value)| void bb_putInt(byte_buffer_t *bb, int32_t i); |
-|abstract ByteBuffer putInt(int index, int value)| |
-|abstract ByteBuffer putLong(int index, long value)| |
-|abstract ByteBuffer putLong(long value)| void bb_putLong(byte_buffer_t *bb, int64_t i); |
-|abstract ByteBuffer putShort(int index, short value)| |
-|abstract ByteBuffer putShort(short value)| void bb_putShort(byte_buffer_t *bb, int16_t i); |
+|abstract ByteBuffer putInt(int value)| void bb_putInt(byte_buffer_t *bb, int32_t value); |
+|abstract ByteBuffer putInt(int index, int value)| void bb_putInt_index(byte_buffer_t *bb,  size_t index, int32_t value);|
+|abstract ByteBuffer putLong(int index, long value)| void bb_putLong_index(byte_buffer_t *bb,  size_t index, int64_t value); |
+|abstract ByteBuffer putLong(long value)| void bb_putLong(byte_buffer_t *bb, int64_t value); |
+|abstract ByteBuffer putShort(int index, short value)| void bb_putShort_index(byte_buffer_t *bb,  size_t index, int16_t value); |
+|abstract ByteBuffer putShort(short value)| void bb_putShort(byte_buffer_t *bb, int16_t value); |
 |abstract ByteBuffer slice()| |
 |String toString()| |
 |static ByteBuffer wrap(byte[] array)| |
-|static ByteBuffer wrap(byte[] array, int offset, int length)| |
-|abstract Object array()| |
+|static ByteBuffer wrap(byte[] array, int offset, int length)| byte_buffer_t *bb_wrap(char *src, size_t offset, size_t length); |
+|abstract Object array()| char *bb_array(byte_buffer_t *bb); |
 |abstract int arrayOffset()| |
 |int capacity()| size_t bb_capacity(byte_buffer_t *bb); |
 |Buffer clear()| void bb_clear(byte_buffer_t *bb); |
@@ -80,4 +80,4 @@ Aligns to most methods in Java ByteBuffer
 |Buffer position(int newPosition)| void bb_position_set(byte_buffer_t *bb, size_t pos); |
 |int remaining()| size_t bb_remaining(byte_buffer_t *bb); |
 |Buffer reset()| void bb_reset(byte_buffer_t *bb); |
-|Buffer rewind()| |
+|Buffer rewind()| void bb_rewind(byte_buffer_t *bb); |

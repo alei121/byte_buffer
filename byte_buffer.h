@@ -8,14 +8,10 @@
 
 #include <stdint.h>
 
-/*
- * A java-like implementation of ByteBuffer.
- */
 typedef enum {
     BYTE_ORDER_BIG_ENDIAN = 0,
     BYTE_ORDER_LITTLE_ENDIAN = 1
 } byte_order_t;
-
 
 typedef struct {
     size_t limit;
@@ -28,12 +24,11 @@ typedef struct {
 } byte_buffer_t;
 
 
-// TODO order
-
 // Special functions not in Java ByteBuffer
 byte_buffer_t *bb_create(size_t max);
-byte_buffer_t *bb_wrap(char *src, size_t offset, size_t length);
 void bb_destroy(byte_buffer_t *bb);
+
+byte_buffer_t *bb_wrap(char *src, size_t offset, size_t length);
 
 char *bb_array(byte_buffer_t *bb);
 size_t bb_capacity(byte_buffer_t *bb);
@@ -57,16 +52,22 @@ char bb_get_index(byte_buffer_t *bb, size_t index);
 void bb_get_buffer(byte_buffer_t *bb, char *dst, size_t offset, size_t length);
 
 int16_t bb_getShort(byte_buffer_t *bb);
+int16_t bb_getShort_index(byte_buffer_t *bb, size_t index);
 int32_t bb_getInt(byte_buffer_t *bb);
+int32_t bb_getInt_index(byte_buffer_t *bb, size_t index);
 int64_t bb_getLong(byte_buffer_t *bb);
+int64_t bb_getLong_index(byte_buffer_t *bb, size_t index);
 
 void bb_put(byte_buffer_t *bb, char c);
 void bb_put_index(byte_buffer_t *bb, size_t index, char c);
 void bb_put_buffer(byte_buffer_t *bb, char *src, size_t offset, size_t length);
 void bb_put_bb(byte_buffer_t *bb, byte_buffer_t *src);
 
-void bb_putShort(byte_buffer_t *bb, int16_t i);
-void bb_putInt(byte_buffer_t *bb, int32_t i);
-void bb_putLong(byte_buffer_t *bb, int64_t i);
+void bb_putShort(byte_buffer_t *bb, int16_t value);
+void bb_putShort_index(byte_buffer_t *bb,  size_t index, int16_t value);
+void bb_putInt(byte_buffer_t *bb, int32_t value);
+void bb_putInt_index(byte_buffer_t *bb,  size_t index, int32_t value);
+void bb_putLong(byte_buffer_t *bb, int64_t value);
+void bb_putLong_index(byte_buffer_t *bb,  size_t index, int64_t value);
 
 #endif /*BYTE_BUFFER_H_*/

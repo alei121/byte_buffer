@@ -44,6 +44,11 @@ void bb_destroy(byte_buffer_t *bb) {
     free(bb);
 }
 
+
+size_t bb_capacity(byte_buffer_t *bb) {
+    return bb->capacity;
+}
+
 byte_order_t bb_order(byte_buffer_t *bb) {
     return bb->order;
 }
@@ -119,8 +124,104 @@ void bb_reset(byte_buffer_t *bb) {
     bb->position = bb->mark;
 }
 
-size_t bb_capacity(byte_buffer_t *bb) {
-    return bb->capacity;
+
+char bb_get(byte_buffer_t *bb) {
+    size_t pos = bb->position;
+    bb->position++;
+    return bb->buffer[pos];
+}
+
+char bb_get_index(byte_buffer_t *bb, size_t index) {
+    assert(index >= 0);
+    assert(index < bb->capacity);
+    return bb->buffer[index];
+}
+
+void bb_get_buffer(byte_buffer_t *bb, char *dst, size_t offset, size_t length) {
+    assert(offset >= 0);
+    assert(length >= 0);
+    assert(bb_remaining(bb) >= length);
+    memcpy(dst + offset, bb->buffer + bb->position, length);
+    bb->position += length;
+}
+
+int16_t bb_getShort(byte_buffer_t *bb) {
+    int16_t value = bb_getShort_index(bb, bb->position);
+    bb->position += 2;
+    return value;
+}
+
+int16_t bb_getShort_index(byte_buffer_t *bb, size_t index) {
+    assert(index + 2 <= bb->limit);
+    
+    int16_t value;
+    if (bb->order == BYTE_ORDER_BIG_ENDIAN) {
+        value = (bb->buffer[index] & 0xFF) << 8;
+        value |= (bb->buffer[index + 1] & 0xFF);
+    }
+    else {
+        value = (bb->buffer[index + 1] & 0xFF) << 8;
+        value |= (bb->buffer[index] & 0xFF);
+    }
+    return value;
+}
+
+int32_t bb_getInt(byte_buffer_t *bb) {
+    int32_t value = bb_getInt_index(bb, bb->position);
+    bb->position += 4;
+    return value;
+}
+
+int32_t bb_getInt_index(byte_buffer_t *bb, size_t index) {
+    assert((index + 4) <= bb->limit);
+    
+    int32_t value;
+    if (bb->order == BYTE_ORDER_BIG_ENDIAN) {
+        value = (bb->buffer[index] & 0xFF) << 24;
+        value |= (bb->buffer[index + 1] & 0xFF) << 16;
+        value |= (bb->buffer[index + 2] & 0xFF) << 8;
+        value |= bb->buffer[index + 3] & 0xFF;
+    }
+    else {
+        value = (bb->buffer[index + 3] & 0xFF) << 24;
+        value |= (bb->buffer[index + 2] & 0xFF) << 16;
+        value |= (bb->buffer[index + 1] & 0xFF) << 8;
+        value |= bb->buffer[index] & 0xFF;
+    }
+    return value;
+}
+
+int64_t bb_getLong(byte_buffer_t *bb) {
+    int64_t value = bb_getLong_index(bb, bb->position);
+    bb->position += 8;
+    return value;
+}
+
+int64_t bb_getLong_index(byte_buffer_t *bb, size_t index) {
+    assert((index + 8) <= bb->limit);
+    
+    int64_t value;
+    if (bb->order == BYTE_ORDER_BIG_ENDIAN) {
+        value = ((int64_t)bb->buffer[index] & 0xFF) << 56;
+        value |= ((int64_t)bb->buffer[index + 1] & 0xFF) << 48;
+        value |= ((int64_t)bb->buffer[index + 2] & 0xFF) << 40;
+        value |= ((int64_t)bb->buffer[index + 3] & 0xFF) << 32;
+        value |= (bb->buffer[index + 4] & 0xFF) << 24;
+        value |= (bb->buffer[index + 5] & 0xFF) << 16;
+        value |= (bb->buffer[index + 6] & 0xFF) << 8;
+        value |= (bb->buffer[index + 7] & 0xFF);
+    }
+    else {
+        value = ((int64_t)bb->buffer[index + 7] & 0xFF) << 56;
+        value |= ((int64_t)bb->buffer[index + 6] & 0xFF) << 48;
+        value |= ((int64_t)bb->buffer[index + 5] & 0xFF) << 40;
+        value |= ((int64_t)bb->buffer[index + 4] & 0xFF) << 32;
+        value |= (bb->buffer[index + 3] & 0xFF) << 24;
+        value |= (bb->buffer[index + 2] & 0xFF) << 16;
+        value |= (bb->buffer[index + 1] & 0xFF) << 8;
+        value |= (bb->buffer[index] & 0xFF);
+    }
+    return value;
 }
 
 
@@ -151,146 +252,70 @@ void bb_put_buffer(byte_buffer_t *bb, char *src, size_t offset, size_t length) {
 }
 
 void bb_putShort(byte_buffer_t *bb, int16_t value) {
-    assert(bb_remaining(bb) >= 2);
+    bb_putShort_index(bb, bb->position, value);
+    bb->position += 2;
+}
+
+void bb_putShort_index(byte_buffer_t *bb, size_t index, int16_t value) {
+    assert((index + 2) <= bb->limit);
     if (bb->order == BYTE_ORDER_BIG_ENDIAN) {
-        bb->buffer[bb->position] = (value >> 8) & 0xFF;
-        bb->buffer[bb->position + 1] = value & 0xFF;
+        bb->buffer[index] = (value >> 8) & 0xFF;
+        bb->buffer[index + 1] = value & 0xFF;
     }
     else {
-        bb->buffer[bb->position + 1] = (value >> 8) & 0xFF;
-        bb->buffer[bb->position] = value & 0xFF;
+        bb->buffer[index + 1] = (value >> 8) & 0xFF;
+        bb->buffer[index] = value & 0xFF;
     }
-    bb->position += 2;
-    if (bb->position > bb->limit) bb->limit = bb->position;
 }
 
 void bb_putInt(byte_buffer_t *bb, int32_t value) {
-    assert(bb_remaining(bb) >= 4);
+    bb_putInt_index(bb, bb->position, value);
+    bb->position += 4;
+}
+
+void bb_putInt_index(byte_buffer_t *bb, size_t index, int32_t value) {
+    assert((index + 4) <= bb->limit);
     
     if (bb->order == BYTE_ORDER_BIG_ENDIAN) {
-        bb->buffer[bb->position] = (value >> 24) & 0xFF;
-        bb->buffer[bb->position + 1] = (value >> 16) & 0xFF;
-        bb->buffer[bb->position + 2] = (value >> 8) & 0xFF;
-        bb->buffer[bb->position + 3] = value & 0xFF;
+        bb->buffer[index] = (value >> 24) & 0xFF;
+        bb->buffer[index + 1] = (value >> 16) & 0xFF;
+        bb->buffer[index + 2] = (value >> 8) & 0xFF;
+        bb->buffer[index + 3] = value & 0xFF;
     }
     else {
-        bb->buffer[bb->position + 3] = (value >> 24) & 0xFF;
-        bb->buffer[bb->position + 2] = (value >> 16) & 0xFF;
-        bb->buffer[bb->position + 1] = (value >> 8) & 0xFF;
-        bb->buffer[bb->position] = value & 0xFF;
+        bb->buffer[index + 3] = (value >> 24) & 0xFF;
+        bb->buffer[index + 2] = (value >> 16) & 0xFF;
+        bb->buffer[index + 1] = (value >> 8) & 0xFF;
+        bb->buffer[index] = value & 0xFF;
     }
-    bb->position += 4;
-    if (bb->position > bb->limit) bb->limit = bb->position;
 }
 
 void bb_putLong(byte_buffer_t *bb, int64_t value) {
-    assert(bb_remaining(bb) >= 8);
+    bb_putLong_index(bb, bb->position, value);
+    bb->position += 8;
+}
+
+void bb_putLong_index(byte_buffer_t *bb, size_t index, int64_t value) {
+    assert((index + 8) <= bb->limit);
     
     if (bb->order == BYTE_ORDER_BIG_ENDIAN) {
-        bb->buffer[bb->position] = (value >> 56) & 0xFF;
-        bb->buffer[bb->position + 1] = (value >> 48) & 0xFF;
-        bb->buffer[bb->position + 2] = (value >> 40) & 0xFF;
-        bb->buffer[bb->position + 3] = (value >> 32) & 0xFF;
-        bb->buffer[bb->position + 4] = (value >> 24) & 0xFF;
-        bb->buffer[bb->position + 5] = (value >> 16) & 0xFF;
-        bb->buffer[bb->position + 6] = (value >> 8) & 0xFF;
-        bb->buffer[bb->position + 7] = value & 0xFF;
+        bb->buffer[index] = (value >> 56) & 0xFF;
+        bb->buffer[index + 1] = (value >> 48) & 0xFF;
+        bb->buffer[index + 2] = (value >> 40) & 0xFF;
+        bb->buffer[index + 3] = (value >> 32) & 0xFF;
+        bb->buffer[index + 4] = (value >> 24) & 0xFF;
+        bb->buffer[index + 5] = (value >> 16) & 0xFF;
+        bb->buffer[index + 6] = (value >> 8) & 0xFF;
+        bb->buffer[index + 7] = value & 0xFF;
     }
     else {
-        bb->buffer[bb->position + 7] = (value >> 56) & 0xFF;
-        bb->buffer[bb->position + 6] = (value >> 48) & 0xFF;
-        bb->buffer[bb->position + 5] = (value >> 40) & 0xFF;
-        bb->buffer[bb->position + 4] = (value >> 32) & 0xFF;
-        bb->buffer[bb->position + 3] = (value >> 24) & 0xFF;
-        bb->buffer[bb->position + 2] = (value >> 16) & 0xFF;
-        bb->buffer[bb->position + 1] = (value >> 8) & 0xFF;
-        bb->buffer[bb->position] = value & 0xFF;
+        bb->buffer[index + 7] = (value >> 56) & 0xFF;
+        bb->buffer[index + 6] = (value >> 48) & 0xFF;
+        bb->buffer[index + 5] = (value >> 40) & 0xFF;
+        bb->buffer[index + 4] = (value >> 32) & 0xFF;
+        bb->buffer[index + 3] = (value >> 24) & 0xFF;
+        bb->buffer[index + 2] = (value >> 16) & 0xFF;
+        bb->buffer[index + 1] = (value >> 8) & 0xFF;
+        bb->buffer[index] = value & 0xFF;
     }
-    bb->position += 8;
-    if (bb->position > bb->limit) bb->limit = bb->position;
-}
-
-
-char bb_get(byte_buffer_t *bb) {
-    size_t pos = bb->position;
-    bb->position++;
-    return bb->buffer[pos];
-}
-
-char bb_get_index(byte_buffer_t *bb, size_t index) {
-    assert(index >= 0);
-    assert(index < bb->capacity);
-    return bb->buffer[index];
-}
-
-void bb_get_buffer(byte_buffer_t *bb, char *dst, size_t offset, size_t length) {
-    assert(offset >= 0);
-    assert(length >= 0);
-    assert(bb_remaining(bb) >= length);
-    memcpy(dst + offset, bb->buffer + bb->position, length);
-    bb->position += length;
-}
-
-int16_t bb_getShort(byte_buffer_t *bb) {
-    assert(bb_remaining(bb) >= 2);
-
-    int16_t value;
-    if (bb->order == BYTE_ORDER_BIG_ENDIAN) {
-        value = (bb->buffer[bb->position] & 0xFF) << 8;
-        value |= (bb->buffer[bb->position + 1] & 0xFF);
-    }
-    else {
-        value = (bb->buffer[bb->position + 1] & 0xFF) << 8;
-        value |= (bb->buffer[bb->position] & 0xFF);
-    }
-    bb->position += 2;
-    return value;
-}
-
-int32_t bb_getInt(byte_buffer_t *bb) {
-    assert(bb_remaining(bb) >= 4);
-    
-    int32_t value;
-    if (bb->order == BYTE_ORDER_BIG_ENDIAN) {
-        value = (bb->buffer[bb->position] & 0xFF) << 24;
-        value |= (bb->buffer[bb->position + 1] & 0xFF) << 16;
-        value |= (bb->buffer[bb->position + 2] & 0xFF) << 8;
-        value |= bb->buffer[bb->position + 3] & 0xFF;
-    }
-    else {
-        value = (bb->buffer[bb->position + 3] & 0xFF) << 24;
-        value |= (bb->buffer[bb->position + 2] & 0xFF) << 16;
-        value |= (bb->buffer[bb->position + 1] & 0xFF) << 8;
-        value |= bb->buffer[bb->position] & 0xFF;
-    }
-    bb->position += 4;
-    return value;
-}
-
-int64_t bb_getLong(byte_buffer_t *bb) {
-    assert(bb_remaining(bb) >= 8);
-
-    int64_t value;
-    if (bb->order == BYTE_ORDER_BIG_ENDIAN) {
-        value = ((int64_t)bb->buffer[bb->position] & 0xFF) << 56;
-        value |= ((int64_t)bb->buffer[bb->position + 1] & 0xFF) << 48;
-        value |= ((int64_t)bb->buffer[bb->position + 2] & 0xFF) << 40;
-        value |= ((int64_t)bb->buffer[bb->position + 3] & 0xFF) << 32;
-        value |= (bb->buffer[bb->position + 4] & 0xFF) << 24;
-        value |= (bb->buffer[bb->position + 5] & 0xFF) << 16;
-        value |= (bb->buffer[bb->position + 6] & 0xFF) << 8;
-        value |= (bb->buffer[bb->position + 7] & 0xFF);
-    }
-    else {
-        value = ((int64_t)bb->buffer[bb->position + 7] & 0xFF) << 56;
-        value |= ((int64_t)bb->buffer[bb->position + 6] & 0xFF) << 48;
-        value |= ((int64_t)bb->buffer[bb->position + 5] & 0xFF) << 40;
-        value |= ((int64_t)bb->buffer[bb->position + 4] & 0xFF) << 32;
-        value |= (bb->buffer[bb->position + 3] & 0xFF) << 24;
-        value |= (bb->buffer[bb->position + 2] & 0xFF) << 16;
-        value |= (bb->buffer[bb->position + 1] & 0xFF) << 8;
-        value |= (bb->buffer[bb->position] & 0xFF);
-    }
-    bb->position += 8;
-    return value;
 }
