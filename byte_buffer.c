@@ -30,9 +30,10 @@ byte_buffer_t *bb_wrap(char *src, size_t offset, size_t length) {
     byte_buffer_t *bb = (byte_buffer_t *)malloc(sizeof(byte_buffer_t));
     memset(bb, 0, sizeof(byte_buffer_t));
     bb_clear(bb);
-    bb->buffer = src + offset;
-    bb->limit = bb->capacity = length;
     bb->isWrapped = 1;
+    bb->buffer = src + offset;
+    bb->wrapped_offset = offset;
+    bb->limit = bb->capacity = length;
     bb->order = BYTE_ORDER_BIG_ENDIAN;
     return bb;
 }
@@ -111,8 +112,16 @@ char *bb_array(byte_buffer_t *bb) {
     return bb->buffer;
 }
 
+size_t bb_arrayOffset(byte_buffer_t *bb) {
+    return bb->wrapped_offset + bb->position;
+}
+
 size_t bb_remaining(byte_buffer_t *bb) {
     return bb->limit - bb->position;
+}
+
+int bb_hasRemaining(byte_buffer_t *bb) {
+    return (bb_remaining(bb) > 0);
 }
 
 void bb_mark(byte_buffer_t *bb) {
@@ -122,6 +131,25 @@ void bb_mark(byte_buffer_t *bb) {
 void bb_reset(byte_buffer_t *bb) {
     assert(bb->mark != -1);
     bb->position = bb->mark;
+}
+
+int bb_compareTo(byte_buffer_t *bb, byte_buffer_t *that) {
+    size_t bb_pos = bb_position(bb);
+    size_t that_pos = bb_position(that);
+    
+    while ((bb_pos < bb->limit) && (that_pos < that->limit)) {
+        if (bb->buffer[bb_pos] > that->buffer[that_pos]) return 1;
+        else if (bb->buffer[bb_pos] < that->buffer[that_pos]) return -1;
+        bb_pos++;
+        that_pos++;
+    }
+    if (bb_pos < bb->limit) return 1;
+    else if (that_pos < that->limit) return -1;
+    return 0;
+}
+
+int bb_equals(byte_buffer_t *bb, byte_buffer_t *that) {
+    return (bb_compareTo(bb, that) == 0);
 }
 
 

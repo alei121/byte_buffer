@@ -13,6 +13,33 @@
   assert(bb_remaining(buffer) == remain); \
   assert(bb_limit(buffer) == limit);
 
+void compare_test() {
+    byte_buffer_t *bb1 = bb_create(15);
+    byte_buffer_t *bb2 = bb_create(15);
+    
+    bb_put_buffer(bb1, "11111", 0, 5);
+    bb_put_buffer(bb2, "11111", 0, 5);
+    bb_flip(bb1);
+    bb_flip(bb2);
+    assert(bb_compareTo(bb1, bb2) == 0);
+    assert(bb_equals(bb1, bb2));
+
+    bb_clear(bb2);
+    bb_put_buffer(bb2, "11110", 0, 5);
+    bb_flip(bb2);
+    assert(bb_compareTo(bb1, bb2) == 1);
+    assert(bb_compareTo(bb2, bb1) == -1);
+
+    bb_clear(bb2);
+    bb_put_buffer(bb2, "1", 0, 1);
+    bb_flip(bb2);
+    assert(bb_compareTo(bb1, bb2) == 1);
+    assert(bb_compareTo(bb2, bb1) == -1);
+
+    bb_destroy(bb1);
+    bb_destroy(bb2);
+}
+
 int main(int argc, const char * argv[]) {
     byte_buffer_t *bb = bb_create(15);
     assert(bb_capacity(bb) == 15);
@@ -77,6 +104,10 @@ int main(int argc, const char * argv[]) {
     bb_putLong_index(bb, 2, ascii1to8);
     assert(bb_getLong_index(bb, 2) == ascii1to8);
     assert(memcmp("8787654321", bb_array(bb), 8) == 0);
-
+    
+    bb_destroy(bb);
+    
+    compare_test();
+    
     return 0;
 }

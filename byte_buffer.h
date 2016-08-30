@@ -20,6 +20,7 @@ typedef struct {
     size_t capacity;
     char *buffer;
     int isWrapped;
+    size_t wrapped_offset;
     byte_order_t order;
 } byte_buffer_t;
 
@@ -31,11 +32,13 @@ void bb_destroy(byte_buffer_t *bb);
 byte_buffer_t *bb_wrap(char *src, size_t offset, size_t length);
 
 char *bb_array(byte_buffer_t *bb);
+size_t bb_arrayOffset(byte_buffer_t *bb);
 size_t bb_capacity(byte_buffer_t *bb);
 byte_order_t bb_order(byte_buffer_t *bb);
 void bb_order_set(byte_buffer_t *bb, byte_order_t order);
 
 size_t bb_remaining(byte_buffer_t *bb);
+int bb_hasRemaining(byte_buffer_t *bb);
 size_t bb_position(byte_buffer_t *bb);
 void bb_position_set(byte_buffer_t *bb, size_t pos);
 size_t bb_limit(byte_buffer_t *bb);
@@ -46,6 +49,9 @@ void bb_rewind(byte_buffer_t *bb);
 void bb_mark(byte_buffer_t *bb);
 void bb_reset(byte_buffer_t *bb);
 byte_buffer_t *bb_compact(byte_buffer_t *bb);
+
+int bb_compareTo(byte_buffer_t *bb, byte_buffer_t *that);
+int bb_equals(byte_buffer_t *bb, byte_buffer_t *that);
 
 char bb_get(byte_buffer_t *bb);
 char bb_get_index(byte_buffer_t *bb, size_t index);
