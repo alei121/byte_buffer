@@ -1,6 +1,7 @@
 # byte_buffer
 
-C implementation of Java ByteBuffer
+An implementation of Java ByteBuffer in C.
+
 - Documentation already available :)
   - https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html
 - buffer required to be freed by `bb_destroy`
