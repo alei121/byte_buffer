@@ -8,9 +8,9 @@ C implementation of Java ByteBuffer
 - Aligns to most methods in Java ByteBuffer, except:
   - `allocate` is replaced by `bb_create` to emphasize the need for `bb_destroy`
   - `hasArray`, `allocateDirect`, `isDirect` are not implemented as they are Java specific for native allocation
-  - `duplication` and `slice` were intentionally left out as they would cause a dependency issue during `bb_destroy`
+  - `duplication` and `slice` were intentionally omitted as they would impose the order of `bb_destroy`
   - `getChar` and `putChar` are not implemented as there is no equivalent of Java Char in C
-  - get/put for Float and Double are not implemented as their byte-sizes are uncertain on C
+  - `get/put` for `Float/Double` are not implemented as their byte-sizes are uncertain in C
 
 
 | `ByteBuffer` | `byte_buffer` |
